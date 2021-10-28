@@ -7,12 +7,27 @@ const ytVideoRgx = /^(http|https):\/\/(.*\.)*youtube.com\/watch\?v=(.*)$/;
 
 let lastUrl;
 let inserted = false;
-full = false;
+let loading = false;
+let full = false;
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    console.log(changeInfo.status, tab.url);
+
+    // if (lastUrl === tab.url)
+    //     return;
+
+    if (changeInfo.status === "complete")
+        lastUrl = tab.url;
+
+    if (loading) return;
+    loading = true;
+
     chrome.storage.sync.get("enable", async ({ enable }) => {
-        if (!enable)
+        if (!enable) {
+            if (inserted)
+                await removeCurtain(tabId);
             return;
+        }
 
         if (inserted && changeInfo.status === "loading")
             await removeCurtain(tabId);
@@ -20,13 +35,16 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         if (ytMainRgx.test(tab.url))
             full = true;
 
-        else if (!ytVideoRgx.test(tab.url))
+        else if (!ytVideoRgx.test(tab.url)) {
+            loading = false;
             return;
-
+        }
         else full = false;
 
         if (!inserted && changeInfo.status === "loading")
             await initCurtain(tabId);
+
+        loading = false;
     });
 });
 
@@ -58,7 +76,6 @@ const cssCode = () => {
 }
 
 function initCurtain(tabId) {
-    console.log("Inserting...");
     console.log(cssCode());
 
     inserted = true;
@@ -74,7 +91,6 @@ function initCurtain(tabId) {
 function removeCurtain(tabId) {
     inserted = false;
 
-    console.log("Removing...");
     console.log(cssCode());
 
     return chrome.scripting.removeCSS({

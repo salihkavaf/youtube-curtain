@@ -1,7 +1,7 @@
 {
     "name": "Youtube Curtain",
     "description": "Avoid distractions on Youtube and stay focused by blurring off video suggestions and recommendations.",
-    "version": "1.0",
+    "version": "1.1",
     "manifest_version": 3,
     "background": {
         "service_worker": "src/js/background.js"
@@ -15,6 +15,18 @@
         "scripting"
     ],
     "action": {
-        "default_popup": "src/html/popup.html"
+        "default_popup": "src/html/popup.html",
+        "default_icon": {
+            "16": "/img/icon@16.png",
+            "32": "/img/icon@32.png",
+            "48": "/img/icon@48.png",
+            "128": "/img/icon@128.png"
+        }
+    },
+    "icons": {
+        "16": "/img/icon@16.png",
+        "32": "/img/icon@32.png",
+        "48": "/img/icon@48.png",
+        "128": "/img/icon@128.png"
     }
 }
