@@ -1,0 +1,51 @@
+body {
+    margin: 0;
+    padding: 40px;
+}
+
+.switch {
+    display: flex;
+    align-items: center;
+}
+
+.switch p {
+    margin: 0;
+    font-size: 20px;
+    color: #888;
+}
+
+.switch label input {
+    position: absolute;
+    visibility: hidden;
+}
+
+.switch label span {
+    position: relative;
+    display: block;
+    width: 40px;
+    height: 20px;
+    margin: 0 10px;
+    background: #ececec;
+    border-radius: 10px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.switch label span::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transition: all .2s ease-in-out;
+}
+
+.switch label input:not(:checked) ~ span::after {
+    background-color: #888;
+    right: 23px;
+}
+
+.switch label input:checked ~ span::after {
+    background-color: #3597ec;
+    right: 3px;
+}

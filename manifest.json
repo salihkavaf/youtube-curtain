@@ -1,0 +1,20 @@
+{
+    "name": "Youtube Curtain",
+    "description": "Avoid distractions on Youtube and stay focused by blurring off video suggestions and recommendations.",
+    "version": "1.0",
+    "manifest_version": 3,
+    "background": {
+        "service_worker": "src/js/background.js"
+    },
+    "host_permissions": [
+        "*://*.youtube.com/*"
+    ],
+    "permissions": [
+        "tabs",
+        "storage",
+        "scripting"
+    ],
+    "action": {
+        "default_popup": "src/html/popup.html"
+    }
+}
