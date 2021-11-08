@@ -1,0 +1,33 @@
+ytd-compact-video-renderer,
+ytd-compact-radio-renderer,
+ytd-rich-item-renderer {
+    position: relative;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow:
+        2px 2px 10px rgb(0 0 0 / 30%),
+        inset -1px -1px 0 rgb(0 0 0 / 40%),
+        inset 1px 1px 0 rgb(255 255 255 / 20%);
+}
+
+ytd-compact-video-renderer::before,
+ytd-compact-radio-renderer::before,
+ytd-rich-item-renderer::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: rgb(255 255 255 / 10%);
+    pointer-events: none;
+}
+
+#dismissible.ytd-compact-video-renderer,
+#dismissible.ytd-compact-radio-renderer {
+    filter: blur(20px);
+}
+
+ytd-rich-item-renderer #content {
+    filter: blur(40px);
+}

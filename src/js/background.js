@@ -5,98 +5,92 @@ chrome.runtime.onInstalled.addListener(() => {
 const ytMainRgx = /^(http|https):\/\/(.*\.)*youtube.com\/*$/;
 const ytVideoRgx = /^(http|https):\/\/(.*\.)*youtube.com\/watch\?v=(.*)$/;
 
-let lastUrl;
-let inserted = false;
-let loading = false;
-let full = false;
+let cache = {};
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    console.log(changeInfo.status, tab.url);
+chrome.runtime.onMessage.addListener(request => {
+    chrome.tabs.query(
+        {currentWindow: true, active : true},
+        async tabs => {
+            const tab = tabs[0];
+            if (!cache.hasOwnProperty(tab.id))
+                return;
 
-    // if (lastUrl === tab.url)
-    //     return;
+            if (!request.reloaded && cache[tab.id].lastUrl !== request.url) {
+                if (!(ytMainRgx.test(request.url) || ytVideoRgx.test(request.url)) && cache[tab.id].inserted) {
+                    await removeCurtain(tab.id);
+                    cache[tab.id].configured = false;
+                    cache[tab.id].lastUrl = request.url;
+                }
+            }
+            else if (request.reloaded) {
+                cache[tab.id].shouldDelete = true;
+                cache[tab.id].inserted = false;
+                cache[tab.id].configured = false;
+            }
+        }
+    );
+});
 
-    if (changeInfo.status === "complete")
-        lastUrl = tab.url;
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    if (!cache.hasOwnProperty(tabId))
+        cacheTab(tabId);
 
-    if (loading) return;
-    loading = true;
+    if (cache[tabId].shouldDelete) {
+        await removeCurtain(tabId);
+        cache[tabId].shouldDelete = false;
+    }
+
+    if (changeInfo.status === "complete") {
+        cache[tabId].lastUrl = tab.url;
+    }
+
+    if (cache[tabId].configured) {
+        if (changeInfo.status === "complete")
+            cache[tabId].configured = false;
+
+        return;
+    }
+    cache[tabId].configured = true;
 
     chrome.storage.sync.get("enable", async ({ enable }) => {
         if (!enable) {
-            if (inserted)
+            if (cache[tabId].inserted)
                 await removeCurtain(tabId);
+
             return;
         }
 
-        if (inserted && changeInfo.status === "loading")
-            await removeCurtain(tabId);
-
-        if (ytMainRgx.test(tab.url))
-            full = true;
-
-        else if (!ytVideoRgx.test(tab.url)) {
-            loading = false;
-            return;
-        }
-        else full = false;
-
-        if (!inserted && changeInfo.status === "loading")
+        if ((ytMainRgx.test(tab.url) || ytVideoRgx.test(tab.url)) && !cache[tabId].inserted)
             await initCurtain(tabId);
-
-        loading = false;
     });
 });
 
-const cssCode = () => {
-    const id = full ? "#primary" : "#secondary";
-
-    return `
-        ${id} {
-            position: relative;
-        }
-
-        ${id}::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            z-index: 500;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            ${id}::after {
-                background: #282828;
-            }
-        }
-        `;
+function cacheTab(id) {
+    cache[id] = {
+        lastUrl: "",
+        inserted: false,
+        configured: false
+    };
 }
 
 function initCurtain(tabId) {
-    console.log(cssCode());
-
-    inserted = true;
+    cache[tabId].inserted = true;
 
     return chrome.scripting.insertCSS({
         target: {
             tabId: tabId
         },
-        css: cssCode(),
+        files: ["/src/css/curtain.css"],
     });
 }
 
 function removeCurtain(tabId) {
-    inserted = false;
-
-    console.log(cssCode());
+    cache[tabId].inserted = false;
 
     return chrome.scripting.removeCSS({
         target: {
             tabId: tabId
         },
-        css: cssCode()
+        files: ["/src/css/curtain.css"]
     });
 }

@@ -6,13 +6,21 @@
     "background": {
         "service_worker": "src/js/background.js"
     },
+    "content_scripts": [
+        {
+            "matches": ["*://*.youtube.com/*"],
+            "run_at": "document_start",
+            "js": ["/src/js/content_script.js"]
+        }
+    ],
     "host_permissions": [
         "*://*.youtube.com/*"
     ],
     "permissions": [
         "tabs",
         "storage",
-        "scripting"
+        "scripting",
+        "webNavigation"
     ],
     "action": {
         "default_popup": "src/html/popup.html",
